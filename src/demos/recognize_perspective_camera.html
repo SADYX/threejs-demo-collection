@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>recognize perspective camera</title>
+		<link type="text/css" rel="stylesheet" href="../main.css" />
+	</head>
+	<body>
+		<script type="module">
+			import * as THREE from "three";
+			import * as dat from "dat.gui";
+			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+			import Stats from "three/examples/jsm/libs/stats.module";
+
+			let SCREEN_WIDTH = window.innerWidth;
+			let SCREEN_HEIGHT = window.innerHeight;
+
+			// gui
+			const params = {
+				far: 120,
+				near: 0.01,
+				fov: 50,
+				aspectRatio: 1,
+			};
+			const gui = new dat.GUI();
+			gui.add(params, "far", 100, 200);
+			gui.add(params, "near", 0.01, 60);
+			gui.add(params, "fov", 30, 120);
+			gui.add(params, "aspectRatio", 0.1, 10);
+
+			// init
+			const container = document.createElement("div");
+			document.body.appendChild(container);
+
+			const stats = new Stats();
+			container.appendChild(stats.dom);
+
+			// scene
+			const scene = new THREE.Scene();
+
+			// renderer
+			const renderer = new THREE.WebGLRenderer({
+				antialias: true,
+			});
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+			container.appendChild(renderer.domElement);
+			renderer.autoClear = false;
+
+			// cameras
+			const camera = new THREE.PerspectiveCamera(
+				50,
+				(SCREEN_WIDTH / SCREEN_HEIGHT) * 0.5,
+				0.01,
+				10000
+			);
+			camera.position.set(-200, 200, 200);
+
+			// mesh
+			const sphereGeometry = new THREE.SphereGeometry(10, 32, 16);
+			const sphereMaterial = new THREE.MeshBasicMaterial({
+				color: 0xffff00,
+				wireframe: true,
+			});
+			const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+			scene.add(sphereMesh);
+
+			const exampleCamera = new THREE.PerspectiveCamera(
+				params.fov,
+				params.aspectRatio,
+				params.near,
+				params.far
+			);
+
+			const geometry = new THREE.BufferGeometry();
+			const vertices = [];
+
+			for (let i = 0; i < 10000; i++) {
+				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // x
+				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // y
+				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // z
+			}
+
+			geometry.setAttribute(
+				"position",
+				new THREE.Float32BufferAttribute(vertices, 3)
+			);
+
+			const particles = new THREE.Points(
+				geometry,
+				new THREE.PointsMaterial({ color: 0x888888 })
+			);
+			scene.add(particles);
+
+			//
+			const cameraHelper = new THREE.CameraHelper(exampleCamera);
+			scene.add(cameraHelper);
+
+			// control
+			const orbitControl = new OrbitControls(camera, renderer.domElement);
+			orbitControl.enableDamping = true;
+			orbitControl.target = new THREE.Vector3(0, 0, -100);
+
+			const render = () => {
+				const time = Date.now() / 1000;
+				sphereMesh.position.set(
+					Math.sin(time) * 50,
+					Math.sin(time),
+					-100 + Math.cos(time) * 50
+				);
+
+				exampleCamera.far = params.far;
+				exampleCamera.near = params.near;
+				exampleCamera.aspect = params.aspectRatio;
+				exampleCamera.fov = params.fov;
+				exampleCamera.updateProjectionMatrix();
+				cameraHelper.update();
+
+				orbitControl.update();
+
+				renderer.clear();
+
+				renderer.setViewport(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT);
+				renderer.render(scene, exampleCamera);
+
+				renderer.setViewport(
+					SCREEN_WIDTH / 2,
+					0,
+					SCREEN_WIDTH / 2,
+					SCREEN_HEIGHT
+				);
+				renderer.render(scene, camera);
+			};
+
+			const animate = () => {
+				requestAnimationFrame(animate);
+
+				render();
+				stats.update();
+			};
+
+			const resize = () => {
+				SCREEN_WIDTH = window.innerWidth;
+				SCREEN_HEIGHT = window.innerHeight;
+
+				renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+				camera.aspect = (0.5 * SCREEN_WIDTH) / SCREEN_HEIGHT;
+				camera.updateProjectionMatrix();
+			};
+
+			window.addEventListener("resize", resize);
+			animate();
+		</script>
+	</body>
+</html>
