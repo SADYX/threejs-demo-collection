@@ -8,4 +8,7 @@ export default defineConfig({
         emptyOutDir: true,
         sourcemap: true,
     },
+    server:{
+        hmr: false,
+    }
 });
