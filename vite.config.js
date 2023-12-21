@@ -7,8 +7,5 @@ export default defineConfig({
         outDir: join(__dirname, 'dist'),
         emptyOutDir: true,
         sourcemap: true,
-    },
-    server:{
-        hmr: false,
     }
 });
