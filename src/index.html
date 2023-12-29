@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>threejs-demo-collection</title>
-</head>
-<body>
-    <a href='%BASE_URL%/demos/recognize_perspective_camera.html'>recognize perspective camera</a>
-</body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>threejs-demo-collection</title>
+	</head>
+	<body>
+		<script>
+			const fileNames = [
+				"recognize_perspective_camera",
+			];
+
+			const transformName = (name) => {
+				return name
+					.split("_")
+					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+					.join(" ");
+			};
+
+			fileNames.forEach((fileName) => {
+				const el = document.createElement("a");
+				el.href = `%BASE_URL%demos/${fileName}.html`;
+				el.text = transformName(fileName);
+				el.style = "display: block; margin: 10px;";
+				document.body.appendChild(el);
+			});
+		</script>
+	</body>
 </html>
