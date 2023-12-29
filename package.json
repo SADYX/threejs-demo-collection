@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/dat.gui": "^0.7.12",
     "dat.gui": "^0.7.9",
+    "glob": "^10.3.10",
     "vite": "^5.0.10"
   },
   "dependencies": {
