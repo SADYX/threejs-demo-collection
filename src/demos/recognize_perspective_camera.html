@@ -13,8 +13,8 @@
 			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 			import Stats from "three/examples/jsm/libs/stats.module";
 
-			let SCREEN_WIDTH = window.innerWidth;
-			let SCREEN_HEIGHT = window.innerHeight;
+			let screenWidth = window.innerWidth;
+			let screenHeight = window.innerHeight;
 
 			// gui
 			const params = {
@@ -44,14 +44,14 @@
 				antialias: true,
 			});
 			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+			renderer.setSize(screenWidth, screenHeight);
 			container.appendChild(renderer.domElement);
 			renderer.autoClear = false;
 
 			// cameras
 			const camera = new THREE.PerspectiveCamera(
 				50,
-				(SCREEN_WIDTH / SCREEN_HEIGHT) * 0.5,
+				(screenWidth / screenHeight) * 0.5,
 				0.01,
 				10000
 			);
@@ -93,7 +93,7 @@
 			);
 			scene.add(particles);
 
-			//
+			// helper
 			const cameraHelper = new THREE.CameraHelper(exampleCamera);
 			scene.add(cameraHelper);
 
@@ -121,14 +121,14 @@
 
 				renderer.clear();
 
-				renderer.setViewport(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT);
+				renderer.setViewport(0, 0, screenWidth / 2, screenHeight);
 				renderer.render(scene, exampleCamera);
 
 				renderer.setViewport(
-					SCREEN_WIDTH / 2,
+					screenWidth / 2,
 					0,
-					SCREEN_WIDTH / 2,
-					SCREEN_HEIGHT
+					screenWidth / 2,
+					screenHeight
 				);
 				renderer.render(scene, camera);
 			};
@@ -141,12 +141,12 @@
 			};
 
 			const resize = () => {
-				SCREEN_WIDTH = window.innerWidth;
-				SCREEN_HEIGHT = window.innerHeight;
+				screenWidth = window.innerWidth;
+				screenHeight = window.innerHeight;
 
-				renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+				renderer.setSize(screenWidth, screenHeight);
 
-				camera.aspect = (0.5 * SCREEN_WIDTH) / SCREEN_HEIGHT;
+				camera.aspect = (0.5 * screenWidth) / screenHeight;
 				camera.updateProjectionMatrix();
 			};
 

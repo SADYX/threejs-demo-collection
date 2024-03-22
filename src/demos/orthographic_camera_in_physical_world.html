@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>orthographic camera in physical world</title>
+		<link type="text/css" rel="stylesheet" href="../main.css" />
+	</head>
+	<body>
+		<script type="module">
+			import * as THREE from "three";
+			import * as dat from "dat.gui";
+			import * as CANNON from "cannon-es";
+			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+			import Stats from "three/examples/jsm/libs/stats.module";
+			import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
+
+			let screenWidth = window.innerWidth;
+			let screenHeight = window.innerHeight;
+
+			// three
+			let container,
+				stats,
+				scene,
+				renderer,
+				camera,
+				orbitControl,
+				lightHelper,
+				lightCameraHelper,
+				directionalLight;
+
+			// cannon
+			let world, physicsMaterial;
+
+			//
+			const objects = [];
+
+			// gui
+			const params = {
+				left: -5,
+				right: 5,
+				top: 5,
+				bottom: -5,
+				near: 1,
+				far: 180,
+				mapSize: 1024,
+				addSphere() {
+					addSphere(2 + Math.random() * 3, {
+						x: Math.random() * 5,
+						y: 30,
+						z: Math.random() * 5,
+					});
+				},
+				reset() {
+					for (const obj of objects) {
+						scene.remove(obj.mesh);
+						world.removeBody(obj.body);
+					}
+					objects.length = 0;
+					addSphere(5, { x: 0, y: 30, z: 0 });
+				},
+			};
+			const gui = new dat.GUI();
+			gui.add(params, "left", -50, -1);
+			gui.add(params, "right", 1, 50);
+			gui.add(params, "top", 1, 50);
+			gui.add(params, "bottom", -50, -1);
+			gui.add(params, "near", 0.1, 150);
+			gui.add(params, "far", 150, 300);
+			gui.add(params, "mapSize", 1, 2048);
+			gui.add(params, "reset");
+			gui.add(params, "addSphere");
+
+			//
+			const initThree = () => {
+				container = document.createElement("div");
+				document.body.appendChild(container);
+
+        // stats
+				stats = new Stats();
+				container.appendChild(stats.dom);
+
+				// scene
+				scene = new THREE.Scene();
+
+				// renderer
+				renderer = new THREE.WebGLRenderer({
+					antialias: true,
+				});
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(screenWidth, screenHeight);
+				container.appendChild(renderer.domElement);
+
+				// cameras
+				camera = new THREE.PerspectiveCamera(
+					50,
+					screenWidth / screenHeight,
+					0.01,
+					10000
+				);
+				camera.position.set(150, 150, 150);
+
+				// control
+				orbitControl = new OrbitControls(camera, renderer.domElement);
+				// orbitControl.enableDamping = true;
+
+				// light
+				directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+				directionalLight.position.set(-100, 100, 100);
+				directionalLight.castShadow = true;
+
+				directionalLight.shadow.mapSize.set(
+					params.mapSize,
+					params.mapSize
+				);
+				directionalLight.shadow.camera.far = params.far;
+				directionalLight.shadow.camera.near = params.near;
+				directionalLight.shadow.camera.left = params.left;
+				directionalLight.shadow.camera.right = params.right;
+				directionalLight.shadow.camera.top = params.top;
+				directionalLight.shadow.camera.bottom = params.bottom;
+
+				scene.add(directionalLight);
+				// light helper
+				lightHelper = new THREE.DirectionalLightHelper(
+					directionalLight,
+					1
+				);
+
+				lightCameraHelper = new THREE.CameraHelper(
+					directionalLight.shadow.camera
+				);
+				scene.add(lightCameraHelper);
+			};
+
+			//
+			const initCannon = () => {
+				world = new CANNON.World();
+				world.gravity.set(0, -9.81, 0);
+				world.broadphase = new CANNON.SAPBroadphase(world);
+				world.allowSleep = true;
+
+				// material
+				physicsMaterial = new CANNON.Material("physics");
+				const physics_physics = new CANNON.ContactMaterial(
+					physicsMaterial,
+					physicsMaterial,
+					{
+						friction: 0.1,
+						restitution: 0.3,
+					}
+				);
+				world.addContactMaterial(physics_physics);
+				world.defaultContactMaterial = physics_physics;
+			};
+
+			//
+			const render = () => {
+				directionalLight.shadow.mapSize.set(
+					params.mapSize,
+					params.mapSize
+				);
+				directionalLight.shadow.camera.far = params.far;
+				directionalLight.shadow.camera.near = params.near;
+				directionalLight.shadow.camera.left = params.left;
+				directionalLight.shadow.camera.right = params.right;
+				directionalLight.shadow.camera.top = params.top;
+				directionalLight.shadow.camera.bottom = params.bottom;
+
+				directionalLight.shadow.camera.updateProjectionMatrix();
+				lightHelper.update();
+				lightCameraHelper.update();
+
+				orbitControl.update();
+				renderer.render(scene, camera);
+			};
+
+			//
+			let lastCallTime = performance.now();
+			const timeStep = 1 / 60;
+
+			const animate = () => {
+				requestAnimationFrame(animate);
+
+				const time = performance.now() / 1000;
+				const dt = time - lastCallTime;
+				lastCallTime = time;
+				world.step(timeStep, dt);
+
+				for (const obj of objects) {
+					obj.mesh.position.copy(obj.body.position);
+					obj.mesh.quaternion.copy(obj.body.quaternion);
+				}
+
+				render();
+				stats.update();
+			};
+
+			//
+			const resize = () => {
+				screenWidth = window.innerWidth;
+				screenHeight = window.innerHeight;
+
+				renderer.setSize(screenWidth, screenHeight);
+
+				camera.aspect = screenWidth / screenHeight;
+				camera.updateProjectionMatrix();
+			};
+
+			//
+			const addPlane = () => {
+				// three
+				const geometry = new THREE.PlaneGeometry(200, 200);
+				geometry.rotateX(-Math.PI / 2);
+				const material = new THREE.MeshPhongMaterial({
+					color: 0xffffff,
+				});
+				const mesh = new THREE.Mesh(geometry, material);
+				mesh.receiveShadow = true;
+				scene.add(mesh);
+
+				// cannon
+				const shape = new CANNON.Plane();
+				const body = new CANNON.Body({
+					mass: 0,
+					material: physicsMaterial,
+				});
+				body.addShape(shape);
+				body.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+				world.addBody(body);
+			};
+
+			//
+			const sphereGeometry = new THREE.SphereGeometry(1);
+
+			const texture = new THREE.TextureLoader().load(textureUrl);
+			const sphereMaterial = new THREE.MeshBasicMaterial({
+				map: texture,
+			});
+
+			const addSphere = (radius, position) => {
+				// three
+				const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+				mesh.castShadow = true;
+				mesh.scale.set(radius, radius, radius);
+				mesh.position.copy(position);
+				scene.add(mesh);
+
+				// cannon
+				const shape = new CANNON.Sphere(radius);
+				const body = new CANNON.Body({
+					mass: 1,
+					material: physicsMaterial,
+				});
+				body.addShape(shape);
+				body.position.copy(position);
+				world.addBody(body);
+
+				objects.push({
+					mesh,
+					body,
+				});
+			};
+
+			// invoke
+			initThree();
+			initCannon();
+			window.addEventListener("resize", resize);
+			animate();
+
+			// stuff
+			addPlane();
+			addSphere(5, { x: 0, y: 30, z: 0 });
+		</script>
+	</body>
+</html>
