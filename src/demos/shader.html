@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>orthographic camera in physical world</title>
+		<link type="text/css" rel="stylesheet" href="../main.css" />
+	</head>
+	<body>
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			uniform mat4 projectionMatrix; // optional
+			uniform mat4 viewMatrix; // optional
+			uniform mat4 modelMatrix; // optional
+
+			attribute vec3 position;
+
+			void main()	{
+				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 );
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+
+			precision mediump float;
+
+			void main()	{
+				gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+			}
+		</script>
+		<script type="module">
+			import * as THREE from "three";
+			import * as dat from "dat.gui";
+			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+			import Stats from "three/examples/jsm/libs/stats.module";
+			import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
+
+			let screenWidth = window.innerWidth;
+			let screenHeight = window.innerHeight;
+
+			// three
+			let container,
+				stats,
+				scene,
+				renderer,
+				camera,
+				orbitControl,
+				lightHelper,
+				lightCameraHelper,
+				directionalLight;
+
+			//
+			const objects = [];
+
+			// gui
+
+			//
+			const initThree = () => {
+				container = document.createElement("div");
+				document.body.appendChild(container);
+
+				// stats
+				stats = new Stats();
+				container.appendChild(stats.dom);
+
+				// scene
+				scene = new THREE.Scene();
+
+				// renderer
+				renderer = new THREE.WebGLRenderer({
+					antialias: true,
+				});
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(screenWidth, screenHeight);
+				container.appendChild(renderer.domElement);
+
+				// cameras
+				camera = new THREE.PerspectiveCamera(
+					50,
+					screenWidth / screenHeight,
+					0.01,
+					10000
+				);
+				camera.position.set(5, 5, 5);
+
+				// control
+				orbitControl = new OrbitControls(camera, renderer.domElement);
+				// orbitControl.enableDamping = true;
+
+				// helper
+				const helper = new THREE.AxesHelper(10);
+				scene.add(helper);
+			};
+
+			//
+			const render = () => {
+				orbitControl.update();
+				renderer.render(scene, camera);
+			};
+
+			const animate = () => {
+				requestAnimationFrame(animate);
+
+				render();
+				stats.update();
+			};
+
+			//
+			const resize = () => {
+				screenWidth = window.innerWidth;
+				screenHeight = window.innerHeight;
+
+				renderer.setSize(screenWidth, screenHeight);
+
+				camera.aspect = screenWidth / screenHeight;
+				camera.updateProjectionMatrix();
+			};
+
+			//
+			const addPlane = () => {
+				const geo = new THREE.PlaneGeometry(3, 3);
+				const mat = new THREE.RawShaderMaterial({
+					vertexShader:
+						document.getElementById("vertexShader").textContent,
+					fragmentShader:
+						document.getElementById("fragmentShader").textContent,
+					side: THREE.DoubleSide,
+				});
+
+				const mesh = new THREE.Mesh(geo, mat);
+
+				scene.add(mesh);
+			};
+
+			// invoke
+			initThree();
+			window.addEventListener("resize", resize);
+			animate();
+
+			// stuff
+			addPlane();
+		</script>
+	</body>
+</html>
