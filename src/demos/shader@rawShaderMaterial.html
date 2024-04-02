@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>orthographic camera in physical world</title>
+		<title>rawShaderMaterial</title>
 		<link type="text/css" rel="stylesheet" href="../main.css" />
 	</head>
 	<body>
@@ -98,8 +98,8 @@
 				// orbitControl.enableDamping = true;
 
 				// helper
-				const helper = new THREE.AxesHelper(10);
-				scene.add(helper);
+				// const helper = new THREE.AxesHelper(10);
+				// scene.add(helper);
 			};
 
 			//
@@ -153,7 +153,7 @@
 				});
 
 				mesh = new THREE.Mesh(geo, mat);
-				mesh.rotateX(Math.PI / 2);
+				mesh.rotateX(-Math.PI / 2);
 
 				scene.add(mesh);
 			};
