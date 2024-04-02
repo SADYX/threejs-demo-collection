@@ -10,14 +10,17 @@
 			const fileNames = [
 				"recognize_perspective_camera",
 				"orthographic_camera_in_physical_world",
-				"shader",
+				"shader@rawShaderMaterial",
 			];
 
 			const transformName = (name) => {
 				return name
 					.split("_")
 					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-					.join(" ");
+					.join(" ")
+					.split("@")
+					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+					.join(" / ");
 			};
 
 			fileNames.forEach((fileName) => {

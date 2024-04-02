@@ -13,15 +13,20 @@
 			uniform mat4 projectionMatrix; // optional
 			uniform mat4 viewMatrix; // optional
 			uniform mat4 modelMatrix; // optional
+			uniform float uTime;
 
 			attribute vec3 position;
+			attribute vec2 uv;
+
+			varying vec2 vUv;
 
 			void main()	{
-			     vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
-			     modelPosition.z += sin(modelPosition.x * 10.0) * 0.1;
-			     vec4 viewPosition = viewMatrix * modelPosition;
-			     vec4 projectedPosition = projectionMatrix * viewPosition;
+				vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
+				modelPosition.y += sin(modelPosition.x * 10.0 + uTime * 3.0) * 0.1;
+				vec4 viewPosition = viewMatrix * modelPosition;
+				vec4 projectedPosition = projectionMatrix * viewPosition;
 				gl_Position = projectedPosition;
+				vUv = uv;
 			}
 		</script>
 		<!-- fragmentShader -->
@@ -29,8 +34,15 @@
 
 			precision mediump float;
 
+			uniform vec3 uColor;
+			uniform float uTime;
+			uniform sampler2D uTexture;
+
+			varying vec2 vUv;
+
 			void main()	{
-				gl_FragColor = vec4(1.0, 0.0, 0.0, 0.8);
+
+				gl_FragColor = texture2D(uTexture, vUv);
 			}
 		</script>
 		<!-- scripts -->
@@ -45,15 +57,7 @@
 			let screenHeight = window.innerHeight;
 
 			// three
-			let container,
-				stats,
-				scene,
-				renderer,
-				camera,
-				orbitControl,
-				lightHelper,
-				lightCameraHelper,
-				directionalLight;
+			let container, stats, scene, renderer, camera, orbitControl, mesh;
 
 			//
 			const objects = [];
@@ -99,6 +103,7 @@
 			};
 
 			//
+			let lastCallTime = performance.now();
 			const render = () => {
 				orbitControl.update();
 				renderer.render(scene, camera);
@@ -106,6 +111,12 @@
 
 			const animate = () => {
 				requestAnimationFrame(animate);
+
+				const time = performance.now() / 1000;
+				// tweak uniforms
+				if (mesh) {
+					mesh.material.uniforms.uTime.value = time;
+				}
 
 				render();
 				stats.update();
@@ -124,18 +135,25 @@
 
 			//
 			const addPlane = () => {
-				const geo = new THREE.PlaneGeometry(3, 3, 32, 32);
+				const texture = new THREE.TextureLoader().load(textureUrl);
+				const geo = new THREE.PlaneGeometry(3, 3, 64, 64);
 				const mat = new THREE.RawShaderMaterial({
 					vertexShader:
 						document.getElementById("vertexShader").textContent,
 					fragmentShader:
 						document.getElementById("fragmentShader").textContent,
 					side: THREE.DoubleSide,
-          transparent: true,
+					uniforms: {
+						uTime: { value: 0 },
+						uColor: { value: new THREE.Vector3(0, 1, 1) },
+						uTexture: { value: texture },
+					},
+					transparent: true,
 					// wireframe: true,
 				});
 
-				const mesh = new THREE.Mesh(geo, mat);
+				mesh = new THREE.Mesh(geo, mat);
+				mesh.rotateX(Math.PI / 2);
 
 				scene.add(mesh);
 			};
