@@ -20,6 +20,8 @@ npm start
 
 [Shader / Noise](https://sadyx.github.io/threejs-demo-collection/demos/shader@noise.html)
 
+[Shader / Web Audio Visualization](https://sadyx.github.io/threejs-demo-collection/demos/shader@web_audio_visualization.html)
+
 ### Reference
 [The Book of Shaders](https://thebookofshaders.com/)
 

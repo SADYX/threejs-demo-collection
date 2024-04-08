@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>web audio visualization</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
+</head>
+
+<body>
+  <div id="overlay">
+    <button id="startButton">Play</button>
+  </div>
+  <div id="info">
+    Music by: <a href="https://en.wikipedia.org/wiki/Ballade_pour_Adeline">Richard Clayderman - Ballade Pour Adeline</a>
+  </div>
+  <!-- vertexShader -->
+  <script id="vertexShader" type="x-shader/x-vertex">
+
+    uniform sampler2D uSong;
+    uniform float amplitude;
+
+    attribute float placement;
+
+    varying float vY;
+  
+    void main()	{
+
+      float y = texture2D(uSong, vec2(placement / 127.0, 0.0)).r;
+
+      vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
+      modelPosition.y = (y - 0.5) * amplitude;
+      vec4 viewPosition = viewMatrix * modelPosition;
+      vec4 projectedPosition = projectionMatrix * viewPosition;
+      gl_Position = projectedPosition;
+      gl_PointSize = 1.0;
+      vY = y;
+    }
+ </script>
+  <!-- fragmentShader -->
+  <script id="fragmentShader" type="x-shader/x-fragment">
+
+    varying float vY;
+
+    void main()	{
+      vec3 topColor = vec3(1.0, 0.2, 0.2);
+      vec3 bottomColor = vec3(0.2, 0.2, 1.0);
+      gl_FragColor = vec4(mix(topColor, bottomColor, vY), 1.0);
+    }
+  </script>
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
+    import songUrl from "@/assets/audio/RichardClayderman-BalladePourAdeline.mp3";
+
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, particles, directionalLight, ambientLight;
+
+    // audio
+    let audioCtx, analyser, sourceNode, gainNode, bufferLength, dataArray = new Uint8Array(128);
+
+    // gui
+    const params = {
+      volume: -1.9,
+      amplitude: 100,
+    }
+    const gui = new dat.GUI();
+    gui.add(params, "volume", -2, -1, 0.01).onChange(() => {
+      gainNode.gain.value = params.volume;
+    });
+    gui.add(params, "amplitude", 10, 300, 1).onChange(() => {
+      if (particles) {
+        particles.material.uniforms.amplitude.value = params.amplitude;
+      }
+    });
+
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
+
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
+
+      // scene
+      scene = new THREE.Scene();
+
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
+
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        0.01,
+        10000
+      );
+      camera.position.set(250, 210, 250);
+
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
+
+      // light
+      directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight.position.set(-7, 8, 9);
+      scene.add(directionalLight);
+
+      ambientLight = new THREE.AmbientLight(0x404040);
+      scene.add(ambientLight);
+
+      // helper
+      // const helper = new THREE.AxesHelper(200);
+      // scene.add(helper);
+    };
+
+    // 
+    const initAudio = async () => {
+      // fetch
+      const res = await fetch(songUrl);
+      const arrayBuffer = await res.arrayBuffer();
+
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // decode
+      const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+      // analyser
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      bufferLength = analyser.frequencyBinCount;
+      analyser.getByteTimeDomainData(dataArray);
+      analyser.connect(audioCtx.destination);
+
+      // gainNode
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = params.volume;
+      gainNode.connect(audioCtx.destination);
+
+      // sourceNode
+      sourceNode = audioCtx.createBufferSource();
+      sourceNode.buffer = decoded;
+      sourceNode.connect(analyser);
+      sourceNode.connect(gainNode);
+      sourceNode.connect(audioCtx.destination);
+      sourceNode.start(0);
+    }
+
+    //
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      if (analyser) {
+        analyser.getByteTimeDomainData(dataArray);
+
+        if (particles) {
+          particles.material.uniforms.uSong.value.needsUpdate = true;
+        }
+      }
+
+      render();
+      stats.update();
+    };
+
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+
+      renderer.setSize(screenWidth, screenHeight);
+
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
+
+
+    // 
+    const addPoints = () => {
+      const splitAmount = 360;
+      // analyser.frequencyBinCount - 1
+      const lineChildrenCount = 128 - 1;
+
+      // + 1 represent the center point
+      const positions = new Float32Array((splitAmount * lineChildrenCount + 1) * 3);
+      const placement = new Uint8Array((splitAmount * lineChildrenCount + 1) * 1);
+
+      for (let i = 0; i < splitAmount; i++) {
+        const previousCount = i * lineChildrenCount * 3;
+        const angle = i / 180 * Math.PI;
+        const sinValue = Math.sin(angle);
+        const cosValue = Math.cos(angle);
+
+        for (let j = 0; j < lineChildrenCount; j++) {
+          const indexStart = previousCount + j * 3;
+          const distance = j + 1;
+
+          positions[indexStart] = distance * cosValue;
+          positions[indexStart + 1] = 0;
+          positions[indexStart + 2] = distance * sinValue;
+
+          placement[i * lineChildrenCount + j] = j + 1;
+        }
+      }
+      // center point
+      const endPositionStart = splitAmount * lineChildrenCount * 3;
+      positions[endPositionStart] = 0;
+      positions[endPositionStart + 1] = 0;
+      positions[endPositionStart + 2] = 0;
+
+      placement[splitAmount * lineChildrenCount + 1] = 0;
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('placement', new THREE.BufferAttribute(placement, 1));
+
+      const material = new THREE.ShaderMaterial({
+        vertexShader:
+          document.getElementById("vertexShader").textContent,
+        fragmentShader:
+          document.getElementById("fragmentShader").textContent,
+        uniforms: {
+          amplitude: { value: params.amplitude },
+          uSong: { value: new THREE.DataTexture(dataArray, 128, 1, THREE.RedFormat) }
+        },
+      });
+
+      particles = new THREE.Points(geometry, material);
+      scene.add(particles);
+    }
+
+    //
+    const init = () => {
+      const overlay = document.getElementById('overlay');
+      overlay.remove();
+
+      // invoke
+      initThree();
+      initAudio();
+
+      window.addEventListener("resize", resize);
+      animate();
+
+      // stuff
+      addPoints();
+    }
+
+    // button
+    const startButton = document.getElementById('startButton');
+    startButton.addEventListener('click', init);
+
+  </script>
+</body>
+
+</html>
