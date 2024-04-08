@@ -4,7 +4,7 @@ preview: https://sadyx.github.io/threejs-demo-collection/
 
 ### Usage
 ```
-git clone https://github.com/SADYX/div-shader.git
+git clone https://github.com/SADYX/threejs-demo-collection.git
 
 npm install
 
