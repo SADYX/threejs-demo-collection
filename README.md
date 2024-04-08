@@ -23,6 +23,8 @@ npm start
 [Shader / Web Audio Visualization](https://sadyx.github.io/threejs-demo-collection/demos/shader@web_audio_visualization.html)
 
 ### Reference
+[three.js](https://github.com/mrdoob/three.js)
+
 [The Book of Shaders](https://thebookofshaders.com/)
 
 [Inigo Quilez ](https://iquilezles.org/)
