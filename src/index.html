@@ -9,7 +9,7 @@
 </head>
 
 <body>
-	<script>
+	<script type="module">
 		const fileNames = [
 			"generic@basic",
 			"generic@recognize_perspective_camera",
@@ -58,7 +58,7 @@
 
 				const template = `
 					<div class="card">
-							<img src="assets/screenshots/${fileName}.png" loading="lazy" />
+							<img src="${new URL('./assets/screenshots/' + fileName + '.png', import.meta.url).href}" loading="lazy" />
 							<h4>${name}</h4>
 					</div>
 				`;
