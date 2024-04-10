@@ -1,39 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>threejs-demo-collection</title>
-	</head>
-	<body>
-		<script>
-			const fileNames = [
-				"basic",
-				"recognize_perspective_camera",
-				"orthographic_camera_in_physical_world",
-				"shader@rawShaderMaterial",
-				"shader@noise",
-				"shader@web_audio_visualization",
-				"postprocessing@night_vision",
-			];
 
-			const transformName = (name) => {
-				return name
-					.split("_")
-					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-					.join(" ")
-					.split("@")
-					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-					.join(" / ");
-			};
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>threejs-demo-collection</title>
+	<link type="text/css" rel="stylesheet" href="./index.css" />
+</head>
 
-			fileNames.forEach((fileName) => {
-				const el = document.createElement("a");
-				el.href = `%BASE_URL%demos/${fileName}.html`;
-				el.text = transformName(fileName);
-				el.style = "display: block; margin: 10px;";
-				document.body.appendChild(el);
+<body>
+	<script>
+		const fileNames = [
+			"generic@basic",
+			"generic@recognize_perspective_camera",
+			"generic@orthographic_camera_in_physical_world",
+			"shader@rawShaderMaterial",
+			"shader@noise",
+			"shader@web_audio_visualization",
+			"postprocessing@night_vision",
+		];
+
+		const getTitleCase = (s) => {
+			return s.charAt(0).toUpperCase() + s.slice(1)
+		}
+
+		const transformName = (name) => {
+			return name
+				.split("@")
+				.at(-1)
+				.split("_")
+				.map(getTitleCase)
+				.join(" ")
+		};
+
+		const fileObject = {};
+
+		// merge
+		fileNames.forEach((fileName) => {
+			const prefix = fileName.split('@')[0];
+
+			if (fileObject[prefix]) {
+				fileObject[prefix].push(fileName);
+			}
+			else {
+				fileObject[prefix] = [fileName];
+			}
+		});
+
+		const fileMap = Object.entries(fileObject);
+		fileMap.forEach(([prefix, names], index) => {
+			const title = document.createElement("h2");
+			title.textContent = getTitleCase(prefix);
+			document.body.appendChild(title);
+
+			names.forEach((fileName) => {
+				const name = transformName(fileName);
+
+				const template = `
+					<div class="card">
+							<img src="./assets/screenshots/${fileName}.png" loading="lazy" />
+							<h4>${name}</h4>
+					</div>
+				`;
+
+				const card = document.createElement("div");
+				card.innerHTML = template.trim();
+				card.firstChild.addEventListener("click", () => {
+					window.location.href = `%BASE_URL%demos/${fileName}.html`;
+				});
+				document.body.appendChild(card.firstChild);
 			});
-		</script>
-	</body>
+
+			if (index !== fileMap.length - 1) {
+				const split = document.createElement("hr");
+				document.body.appendChild(split);
+			}
+		});
+
+	</script>
+</body>
+
 </html>

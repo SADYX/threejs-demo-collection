@@ -1,0 +1,19 @@
+body{
+	padding: 30px 10%;
+}
+
+.card {
+	display: inline-block;
+	width: 28%;
+	margin: 20px 2.5%;
+	background-color: #2aee8c55;
+	cursor: pointer;
+}
+
+.card img{
+	width: 100%;
+}
+
+.card h4{
+	text-align: center;
+}
