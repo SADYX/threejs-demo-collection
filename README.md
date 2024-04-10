@@ -24,6 +24,8 @@ npm start
 
 [Shader / Web Audio Visualization](https://sadyx.github.io/threejs-demo-collection/demos/shader@web_audio_visualization.html)
 
+[Postprocessing / Night Vision](https://sadyx.github.io/threejs-demo-collection/demos/postprocessing@night_vision.html)
+
 ### Reference
 [three.js](https://github.com/mrdoob/three.js)
 
