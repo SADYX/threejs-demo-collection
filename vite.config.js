@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 export default defineConfig({
 	root: join(__dirname, "src"),
 	base: "/threejs-demo-collection/",
+	publicDir: '../public',
 	build: {
 		outDir: join(__dirname, "dist"),
 		emptyOutDir: true,
@@ -33,6 +34,5 @@ export default defineConfig({
 		alias: {
 			'@': resolve(__dirname, "src"),
 		}
-	},
-	assetsInclude: ["src/assets/screenshots/*"]
+	}
 });
