@@ -12,6 +12,8 @@ npm start
 ```
 
 ### Collection
+[Basic](https://sadyx.github.io/threejs-demo-collection/demos/basic.html)
+
 [Recognize perspective camera](https://sadyx.github.io/threejs-demo-collection/demos/recognize_perspective_camera.html)
 
 [Orthographic camera in physical world](https://sadyx.github.io/threejs-demo-collection/demos/orthographic_camera_in_physical_world.html)
