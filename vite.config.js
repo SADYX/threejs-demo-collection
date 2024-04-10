@@ -33,5 +33,6 @@ export default defineConfig({
 		alias: {
 			'@': resolve(__dirname, "src"),
 		}
-	}
+	},
+	assetsInclude: ["src/assets/screenshots/*"]
 });
