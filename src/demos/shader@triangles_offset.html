@@ -33,7 +33,6 @@
       vUv = uv;
     }
   </script>
-  </script>
   <!-- fragmentShader -->
   <script id="fragmentShader" type="x-shader/x-fragment">
 
@@ -66,12 +65,18 @@
     // gui
     const params = {
       weight: 3,
+      wireframe: false,
     };
 
     const gui = new dat.GUI();
     gui.add(params, 'weight', 0, 6, 0.1).onChange(() => {
       if (mesh) {
         mesh.material.uniforms.uWeight.value = params.weight;
+      }
+    });
+    gui.add(params, 'wireframe').onChange(() => {
+      if (mesh) {
+        mesh.material.wireframe = params.wireframe;
       }
     });
 
@@ -156,7 +161,7 @@
         uWeight: { value: 3 },
         uTexture: { value: texture },
       },
-      wireframe: true,
+      wireframe: false,
     });
 
     // 
