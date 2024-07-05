@@ -68,12 +68,12 @@
 
     // gui
     const params = {
-      weight: 3,
+      weight: 1,
       wireframe: false,
     };
 
     const gui = new dat.GUI();
-    gui.add(params, 'weight', 0, 6, 0.1).onChange(() => {
+    gui.add(params, 'weight', 0, 2, 0.1).onChange(() => {
       if (mesh) {
         mesh.material.uniforms.uWeight.value = params.weight;
       }
@@ -162,7 +162,7 @@
         document.getElementById("vertexShader").textContent,
       fragmentShader: document.getElementById("fragmentShader").textContent,
       uniforms: {
-        uWeight: { value: 3 },
+        uWeight: { value: 1 },
         uTexture: { value: texture },
       },
       wireframe: false,
