@@ -1,157 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>recognize perspective camera</title>
-		<link type="text/css" rel="stylesheet" href="../main.css" />
-	</head>
-	<body>
-		<script type="module">
-			import * as THREE from "three";
-			import * as dat from "dat.gui";
-			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-			import Stats from "three/examples/jsm/libs/stats.module";
 
-			let screenWidth = window.innerWidth;
-			let screenHeight = window.innerHeight;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>recognize perspective camera</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
+</head>
 
-			// gui
-			const params = {
-				far: 120,
-				near: 0.01,
-				fov: 50,
-				aspectRatio: 1,
-			};
-			const gui = new dat.GUI();
-			gui.add(params, "far", 100, 200);
-			gui.add(params, "near", 0.01, 60);
-			gui.add(params, "fov", 30, 120);
-			gui.add(params, "aspectRatio", 0.1, 10);
+<body>
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
 
-			// init
-			const container = document.createElement("div");
-			document.body.appendChild(container);
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-			const stats = new Stats();
-			container.appendChild(stats.dom);
+    // gui
+    const params = {
+      far: 120,
+      near: 0.01,
+      fov: 50,
+      aspectRatio: 1,
+    };
+    const gui = new dat.GUI();
+    gui.add(params, "far", 100, 200);
+    gui.add(params, "near", 0.01, 60);
+    gui.add(params, "fov", 30, 120);
+    gui.add(params, "aspectRatio", 0.1, 10);
 
-			// scene
-			const scene = new THREE.Scene();
+    // init
+    const container = document.createElement("div");
+    document.body.appendChild(container);
 
-			// renderer
-			const renderer = new THREE.WebGLRenderer({
-				antialias: true,
-			});
-			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setSize(screenWidth, screenHeight);
-			container.appendChild(renderer.domElement);
-			renderer.autoClear = false;
+    const stats = new Stats();
+    container.appendChild(stats.dom);
 
-			// cameras
-			const camera = new THREE.PerspectiveCamera(
-				50,
-				(screenWidth / screenHeight) * 0.5,
-				0.01,
-				10000
-			);
-			camera.position.set(-200, 200, 200);
+    // scene
+    const scene = new THREE.Scene();
 
-			// mesh
-			const sphereGeometry = new THREE.SphereGeometry(10, 32, 16);
-			const sphereMaterial = new THREE.MeshBasicMaterial({
-				color: 0xffff00,
-				wireframe: true,
-			});
-			const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-			scene.add(sphereMesh);
+    // renderer
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(screenWidth, screenHeight);
+    container.appendChild(renderer.domElement);
+    renderer.autoClear = false;
 
-			const exampleCamera = new THREE.PerspectiveCamera(
-				params.fov,
-				params.aspectRatio,
-				params.near,
-				params.far
-			);
+    // cameras
+    const camera = new THREE.PerspectiveCamera(
+      50,
+      (screenWidth / screenHeight) * 0.5,
+      0.01,
+      10000
+    );
+    camera.position.set(-200, 200, 200);
 
-			const geometry = new THREE.BufferGeometry();
-			const vertices = [];
+    // mesh
+    const sphereGeometry = new THREE.SphereGeometry(10, 32, 16);
+    const sphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      wireframe: true,
+    });
+    const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    scene.add(sphereMesh);
 
-			for (let i = 0; i < 10000; i++) {
-				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // x
-				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // y
-				vertices.push(THREE.MathUtils.randFloatSpread(2000)); // z
-			}
+    const exampleCamera = new THREE.PerspectiveCamera(
+      params.fov,
+      params.aspectRatio,
+      params.near,
+      params.far
+    );
 
-			geometry.setAttribute(
-				"position",
-				new THREE.Float32BufferAttribute(vertices, 3)
-			);
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
 
-			const particles = new THREE.Points(
-				geometry,
-				new THREE.PointsMaterial({ color: 0x888888 })
-			);
-			scene.add(particles);
+    for (let i = 0; i < 10000; i++) {
+      vertices.push(THREE.MathUtils.randFloatSpread(2000)); // x
+      vertices.push(THREE.MathUtils.randFloatSpread(2000)); // y
+      vertices.push(THREE.MathUtils.randFloatSpread(2000)); // z
+    }
 
-			// helper
-			const cameraHelper = new THREE.CameraHelper(exampleCamera);
-			scene.add(cameraHelper);
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3)
+    );
 
-			// control
-			const orbitControl = new OrbitControls(camera, renderer.domElement);
-			orbitControl.enableDamping = true;
-			orbitControl.target = new THREE.Vector3(0, 0, -100);
+    const particles = new THREE.Points(
+      geometry,
+      new THREE.PointsMaterial({ color: 0x888888 })
+    );
+    scene.add(particles);
 
-			const render = () => {
-				const time = Date.now() / 1000;
-				sphereMesh.position.set(
-					Math.sin(time) * 50,
-					Math.sin(time),
-					-100 + Math.cos(time) * 50
-				);
+    // helper
+    const cameraHelper = new THREE.CameraHelper(exampleCamera);
+    scene.add(cameraHelper);
 
-				exampleCamera.far = params.far;
-				exampleCamera.near = params.near;
-				exampleCamera.aspect = params.aspectRatio;
-				exampleCamera.fov = params.fov;
-				exampleCamera.updateProjectionMatrix();
-				cameraHelper.update();
+    // control
+    const orbitControl = new OrbitControls(camera, renderer.domElement);
+    orbitControl.enableDamping = true;
+    orbitControl.target = new THREE.Vector3(0, 0, -100);
 
-				orbitControl.update();
+    const render = () => {
+      const time = Date.now() / 1000;
+      sphereMesh.position.set(
+        Math.sin(time) * 50,
+        Math.sin(time),
+        -100 + Math.cos(time) * 50
+      );
 
-				renderer.clear();
+      exampleCamera.far = params.far;
+      exampleCamera.near = params.near;
+      exampleCamera.aspect = params.aspectRatio;
+      exampleCamera.fov = params.fov;
+      exampleCamera.updateProjectionMatrix();
+      cameraHelper.update();
 
-				renderer.setViewport(0, 0, screenWidth / 2, screenHeight);
-				renderer.render(scene, exampleCamera);
+      orbitControl.update();
 
-				renderer.setViewport(
-					screenWidth / 2,
-					0,
-					screenWidth / 2,
-					screenHeight
-				);
-				renderer.render(scene, camera);
-			};
+      renderer.clear();
 
-			const animate = () => {
-				requestAnimationFrame(animate);
+      renderer.setViewport(0, 0, screenWidth / 2, screenHeight);
+      renderer.render(scene, exampleCamera);
 
-				render();
-				stats.update();
-			};
+      renderer.setViewport(
+        screenWidth / 2,
+        0,
+        screenWidth / 2,
+        screenHeight
+      );
+      renderer.render(scene, camera);
+    };
 
-			const resize = () => {
-				screenWidth = window.innerWidth;
-				screenHeight = window.innerHeight;
+    const animate = () => {
+      requestAnimationFrame(animate);
 
-				renderer.setSize(screenWidth, screenHeight);
+      render();
+      stats.update();
+    };
 
-				camera.aspect = (0.5 * screenWidth) / screenHeight;
-				camera.updateProjectionMatrix();
-			};
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
 
-			window.addEventListener("resize", resize);
-			animate();
-		</script>
-	</body>
+      renderer.setSize(screenWidth, screenHeight);
+
+      camera.aspect = (0.5 * screenWidth) / screenHeight;
+      camera.updateProjectionMatrix();
+    };
+
+    window.addEventListener("resize", resize);
+    animate();
+  </script>
+</body>
+
 </html>

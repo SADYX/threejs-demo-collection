@@ -10,7 +10,9 @@
 
 <body>
   <div id="info">
-    Inspired by: <a href="https://github.com/CesiumGS/cesium/blob/1.116/packages/engine/Source/Shaders/PostProcessStages/NightVision.glsl">Cesium - Night Vision</a>
+    Inspired by: <a
+      href="https://github.com/CesiumGS/cesium/blob/1.116/packages/engine/Source/Shaders/PostProcessStages/NightVision.glsl">Cesium
+      - Night Vision</a>
   </div>
   <!-- vertexShader -->
   <script id="vertexShader" type="x-shader/x-vertex">
@@ -57,7 +59,7 @@
 
     // three
     let container, stats, scene, renderer, camera, orbitControl, group, directionalLight, ambientLight;
-    let composer,nightVisionPass;
+    let composer, nightVisionPass;
 
     // gui
     const params = {
@@ -65,8 +67,8 @@
       'auto rotating': true,
     }
     const gui = new dat.GUI();
-    gui.add(params, 'enabled').onChange(()=>{
-      if(nightVisionPass){
+    gui.add(params, 'enabled').onChange(() => {
+      if (nightVisionPass) {
         nightVisionPass.enabled = params.enabled;
       }
     });
@@ -148,18 +150,18 @@
     };
 
 
-		const startTime = performance.now();
+    const startTime = performance.now();
     const animate = () => {
       requestAnimationFrame(animate);
 
-			const time = (performance.now() - startTime) / 1000;
-      if(nightVisionPass){
-				nightVisionPass.material.uniforms.uTime.value = time;
+      const time = (performance.now() - startTime) / 1000;
+      if (nightVisionPass) {
+        nightVisionPass.material.uniforms.uTime.value = time;
       }
 
-      if(params['auto rotating'] && group){
+      if (params['auto rotating'] && group) {
         group.rotation.x += 0.005;
-				group.rotation.y += 0.01;
+        group.rotation.y += 0.01;
       }
 
       render();

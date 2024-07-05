@@ -2,15 +2,15 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>city</title>
-    <link type="text/css" rel="stylesheet" href="../main.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>city</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
 </head>
 
 <body>
-    <!-- vertexShader -->
-    <script id="vertexShader_buildings" type="x-shader/x-vertex">
+  <!-- vertexShader -->
+  <script id="vertexShader_buildings" type="x-shader/x-vertex">
 
         varying vec3 vPos;
         varying vec3 vNormal;
@@ -27,8 +27,8 @@
             vNormal = modelNormal.xyz;
 		}
 	</script>
-    <!-- fragmentShader -->
-    <script id="fragmentShader_buildings" type="x-shader/x-fragment">
+  <!-- fragmentShader -->
+  <script id="fragmentShader_buildings" type="x-shader/x-fragment">
 
 		uniform float uTime;
         uniform vec3 uInspectorPosition;
@@ -65,8 +65,8 @@
 			gl_FragColor = vec4(endColor, 1.0);
 		}
 	</script>
-    <!-- vertexShader -->
-    <script id="vertexShader_inspector" type="x-shader/x-vertex">
+  <!-- vertexShader -->
+  <script id="vertexShader_inspector" type="x-shader/x-vertex">
 
         varying vec3 vPos;
 
@@ -78,8 +78,8 @@
             vPos = position;
         }
     </script>
-    <!-- fragmentShader -->
-    <script id="fragmentShader_inspector" type="x-shader/x-fragment">
+  <!-- fragmentShader -->
+  <script id="fragmentShader_inspector" type="x-shader/x-fragment">
 
         uniform float uHeight;
 
@@ -92,218 +92,218 @@
             gl_FragColor = originColor;
         }
     </script>
-    <!-- scripts -->
-    <script type="module">
-        import * as THREE from "three";
-        import * as dat from "dat.gui";
-        import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-        import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
-        import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-        import Stats from "three/examples/jsm/libs/stats.module";
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
+    import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+    import Stats from "three/examples/jsm/libs/stats.module";
 
-        let screenWidth = window.innerWidth;
-        let screenHeight = window.innerHeight;
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-        // three
-        let container, stats, scene, renderer, camera, orbitControl, mesh, directionalLight, ambientLight, inspector;
-        const inspectorPosition = new THREE.Vector3();
-        // building material
-        const buildingMat = new THREE.ShaderMaterial({
-            vertexShader:
-                document.getElementById("vertexShader_buildings").textContent,
-            fragmentShader: document.getElementById("fragmentShader_buildings").textContent,
-            uniforms: {
-                uTime: { value: 0 },
-                uInspectorPosition: { value: inspectorPosition}
-            },
-            transparent: true,
-        });
-        // inspector material
-        const inspectorMat = new THREE.ShaderMaterial({
-            vertexShader:
-                document.getElementById("vertexShader_inspector").textContent,
-            fragmentShader: document.getElementById("fragmentShader_inspector").textContent,
-            uniforms: {
-                uHeight: { value: 0 },
-            },
-            transparent: true,
-            depthWrite: false,
-        });
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, mesh, directionalLight, ambientLight, inspector;
+    const inspectorPosition = new THREE.Vector3();
+    // building material
+    const buildingMat = new THREE.ShaderMaterial({
+      vertexShader:
+        document.getElementById("vertexShader_buildings").textContent,
+      fragmentShader: document.getElementById("fragmentShader_buildings").textContent,
+      uniforms: {
+        uTime: { value: 0 },
+        uInspectorPosition: { value: inspectorPosition }
+      },
+      transparent: true,
+    });
+    // inspector material
+    const inspectorMat = new THREE.ShaderMaterial({
+      vertexShader:
+        document.getElementById("vertexShader_inspector").textContent,
+      fragmentShader: document.getElementById("fragmentShader_inspector").textContent,
+      uniforms: {
+        uHeight: { value: 0 },
+      },
+      transparent: true,
+      depthWrite: false,
+    });
 
-        // gui
-        const gui = new dat.GUI();
+    // gui
+    const gui = new dat.GUI();
 
-        //
-        const initThree = () => {
-            container = document.createElement("div");
-            document.body.appendChild(container);
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
 
-            // stats
-            stats = new Stats();
-            container.appendChild(stats.dom);
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
 
-            // scene
-            scene = new THREE.Scene();
+      // scene
+      scene = new THREE.Scene();
 
-            // renderer
-            renderer = new THREE.WebGLRenderer({
-                antialias: true,
-            });
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(screenWidth, screenHeight);
-            container.appendChild(renderer.domElement);
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
 
-            // cameras
-            camera = new THREE.PerspectiveCamera(
-                50,
-                screenWidth / screenHeight,
-                1,
-                10000
-            );
-            camera.position.set(0, 80, 120);
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        1,
+        10000
+      );
+      camera.position.set(0, 80, 120);
 
-            // control
-            orbitControl = new OrbitControls(camera, renderer.domElement);
-            // orbitControl.enableDamping = true;
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
 
-            // light
-            directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
-            directionalLight.position.set(-7, 8, 9);
-            scene.add(directionalLight);
+      // light
+      directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight.position.set(-7, 8, 9);
+      scene.add(directionalLight);
 
-            ambientLight = new THREE.AmbientLight(0x404040);
-            scene.add(ambientLight);
+      ambientLight = new THREE.AmbientLight(0x404040);
+      scene.add(ambientLight);
 
-            // helper
-            // const helper = new THREE.AxesHelper(3);
-            // scene.add(helper);
-        };
+      // helper
+      // const helper = new THREE.AxesHelper(3);
+      // scene.add(helper);
+    };
 
-        //
-        const resize = () => {
-            screenWidth = window.innerWidth;
-            screenHeight = window.innerHeight;
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
 
-            renderer.setSize(screenWidth, screenHeight);
+      renderer.setSize(screenWidth, screenHeight);
 
-            camera.aspect = screenWidth / screenHeight;
-            camera.updateProjectionMatrix();
-        };
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
 
-        //
-        const addPlane = () => {
-            const geometry = new THREE.PlaneGeometry(150, 150);
-            const material = new THREE.MeshBasicMaterial({ color: 0x0099ff, side: THREE.DoubleSide });
-            const plane = new THREE.Mesh(geometry, material);
-            plane.rotateX(-Math.PI / 2);
-            // z-buffer
-            material.polygonOffset = true;
-            material.polygonOffsetFactor = 0;
-            material.polygonOffsetUnits = -10;
-            scene.add(plane);
+    //
+    const addPlane = () => {
+      const geometry = new THREE.PlaneGeometry(150, 150);
+      const material = new THREE.MeshBasicMaterial({ color: 0x0099ff, side: THREE.DoubleSide });
+      const plane = new THREE.Mesh(geometry, material);
+      plane.rotateX(-Math.PI / 2);
+      // z-buffer
+      material.polygonOffset = true;
+      material.polygonOffsetFactor = 0;
+      material.polygonOffsetUnits = -10;
+      scene.add(plane);
+    }
+
+    //
+    const createBoxGeometry = (h) => {
+      const length = 5 + Math.random() * 5;
+      const geo = new THREE.BoxGeometry(length, h, length);
+      geo.translate(length / 2, h / 2, length / 2);
+      return geo;
+    }
+
+    // 
+    const addBuildings = () => {
+
+      const geometries = [];
+
+      const perlin = new ImprovedNoise();
+      const quality = 1;
+
+      for (let i = 0; i < 10; i++)
+        for (let j = 0; j < 10; j++) {
+          const v = perlin.noise(i / quality, j / quality, 1.23);
+          const n = (v + 1) / 2;
+
+          const h = n > 0.4 ? n : 0;
+
+          if (h !== 0) {
+            const geometry = createBoxGeometry(h * 25);
+            geometry.translate(i * 10 - 50, 0, j * 10 - 50);
+            geometries.push(geometry);
+          }
         }
 
-        //
-        const createBoxGeometry = (h) => {
-            const length = 5 + Math.random() * 5;
-            const geo = new THREE.BoxGeometry(length, h, length);
-            geo.translate(length / 2, h / 2, length / 2);
-            return geo;
-        }
 
-        // 
-        const addBuildings = () => {
+      const geo = BufferGeometryUtils.mergeGeometries(geometries);
+      const mesh = new THREE.Mesh(geo, buildingMat);
+      scene.add(mesh);
+    }
 
-            const geometries = [];
+    //
+    const addInspector = () => {
+      inspector = new THREE.Group();
 
-            const perlin = new ImprovedNoise();
-            const quality = 1;
+      const cylinderHeight = 5;
+      const cylinderGeo = new THREE.CylinderGeometry(0.5, 0.5, cylinderHeight, 32);
+      const cylinderMat = new THREE.MeshBasicMaterial({ color: 0x444444 });
+      const cylinder = new THREE.Mesh(cylinderGeo, cylinderMat);
 
-            for (let i = 0; i < 10; i++)
-                for (let j = 0; j < 10; j++) {
-                    const v = perlin.noise(i / quality, j / quality, 1.23);
-                    const n = (v + 1) / 2;
+      const fakeLightHeight = 60;
+      const fakeLightGeo = new THREE.CylinderGeometry(0.5, 5, fakeLightHeight, 32, 1, true);
+      inspectorMat.uniforms.uHeight.value = fakeLightHeight;
+      const fakeLight = new THREE.Mesh(fakeLightGeo, inspectorMat);
+      fakeLight.position.y -= (fakeLightHeight + cylinderHeight) / 2;
 
-                    const h = n > 0.4 ? n : 0;
+      inspector.add(cylinder, fakeLight);
 
-                    if (h !== 0) {
-                        const geometry = createBoxGeometry(h * 25);
-                        geometry.translate(i * 10 - 50, 0, j * 10 - 50);
-                        geometries.push(geometry);
-                    }
-                }
+      inspector.position.set(0, 60, 0);
 
+      scene.add(inspector);
+    }
 
-            const geo = BufferGeometryUtils.mergeGeometries(geometries);
-            const mesh = new THREE.Mesh(geo, buildingMat);
-            scene.add(mesh);
-        }
+    //
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
 
-        //
-        const addInspector = () => {
-            inspector = new THREE.Group();
+    const inspectorPathRadius = 30;
+    const startTime = performance.now();
+    const animate = () => {
+      requestAnimationFrame(animate);
 
-            const cylinderHeight = 5;
-            const cylinderGeo = new THREE.CylinderGeometry(0.5, 0.5, cylinderHeight, 32);
-            const cylinderMat = new THREE.MeshBasicMaterial({ color: 0x444444 });
-            const cylinder = new THREE.Mesh(cylinderGeo, cylinderMat);
+      const time = (performance.now() - startTime) / 1000;
+      // tweak uniforms
+      buildingMat.uniforms.uTime.value = time;
 
-            const fakeLightHeight = 60;
-            const fakeLightGeo = new THREE.CylinderGeometry(0.5, 5, fakeLightHeight, 32, 1, true);
-            inspectorMat.uniforms.uHeight.value = fakeLightHeight;
-            const fakeLight = new THREE.Mesh(fakeLightGeo, inspectorMat);
-            fakeLight.position.y -= (fakeLightHeight + cylinderHeight) / 2;
+      if (inspector) {
+        inspector.position.set(
+          inspectorPathRadius * Math.sin(time / 3),
+          60,
+          inspectorPathRadius * Math.cos(time / 3),
+        );
 
-            inspector.add(cylinder, fakeLight);
+        inspector.rotation.x = -Math.sin(time / 4) / 2;
 
-            inspector.position.set(0, 60, 0);
+        inspector.getWorldPosition(inspectorPosition);
+        buildingMat.uniforms.uInspectorPosition.value = inspectorPosition;
+      }
 
-            scene.add(inspector);
-        }
-
-        //
-        const render = () => {
-            orbitControl.update();
-            renderer.render(scene, camera);
-        };
-
-        const inspectorPathRadius = 30;
-        const startTime = performance.now();
-        const animate = () => {
-            requestAnimationFrame(animate);
-
-            const time = (performance.now() - startTime) / 1000;
-            // tweak uniforms
-            buildingMat.uniforms.uTime.value = time;
-
-            if (inspector) {
-                inspector.position.set(
-                    inspectorPathRadius * Math.sin(time / 3),
-                    60,
-                    inspectorPathRadius * Math.cos(time / 3),
-                );
-
-                inspector.rotation.x = -Math.sin(time / 4) / 2;
-
-                inspector.getWorldPosition(inspectorPosition);
-                buildingMat.uniforms.uInspectorPosition.value = inspectorPosition;
-            }
-
-            render();
-            stats.update();
-        };
+      render();
+      stats.update();
+    };
 
 
-        // invoke
-        initThree();
-        window.addEventListener("resize", resize);
-        animate();
+    // invoke
+    initThree();
+    window.addEventListener("resize", resize);
+    animate();
 
-        // stuff
-        addInspector();
-        // addPlane();
-        addBuildings();
-    </script>
+    // stuff
+    addInspector();
+    // addPlane();
+    addBuildings();
+  </script>
 </body>
 
 </html>

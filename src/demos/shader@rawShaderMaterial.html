@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>rawShaderMaterial</title>
-		<link type="text/css" rel="stylesheet" href="../main.css" />
-	</head>
-	<body>
-		<!-- vertexShader -->
-		<script id="vertexShader" type="x-shader/x-vertex">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rawShaderMaterial</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
+</head>
+
+<body>
+  <!-- vertexShader -->
+  <script id="vertexShader" type="x-shader/x-vertex">
 
 			uniform mat4 projectionMatrix; // optional
 			uniform mat4 viewMatrix; // optional
@@ -29,8 +31,8 @@
 				vUv = uv;
 			}
 		</script>
-		<!-- fragmentShader -->
-		<script id="fragmentShader" type="x-shader/x-fragment">
+  <!-- fragmentShader -->
+  <script id="fragmentShader" type="x-shader/x-fragment">
 
 			precision mediump float;
 
@@ -45,126 +47,127 @@
 				gl_FragColor = texture2D(uTexture, vUv);
 			}
 		</script>
-		<!-- scripts -->
-		<script type="module">
-			import * as THREE from "three";
-			import * as dat from "dat.gui";
-			import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-			import Stats from "three/examples/jsm/libs/stats.module";
-			import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
+    import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
 
-			let screenWidth = window.innerWidth;
-			let screenHeight = window.innerHeight;
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-			// three
-			let container, stats, scene, renderer, camera, orbitControl, mesh;
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, mesh;
 
-			//
-			const objects = [];
+    //
+    const objects = [];
 
-			// gui
+    // gui
 
-			//
-			const initThree = () => {
-				container = document.createElement("div");
-				document.body.appendChild(container);
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
 
-				// stats
-				stats = new Stats();
-				container.appendChild(stats.dom);
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
 
-				// scene
-				scene = new THREE.Scene();
+      // scene
+      scene = new THREE.Scene();
 
-				// renderer
-				renderer = new THREE.WebGLRenderer({
-					antialias: true,
-				});
-				renderer.setPixelRatio(window.devicePixelRatio);
-				renderer.setSize(screenWidth, screenHeight);
-				container.appendChild(renderer.domElement);
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
 
-				// cameras
-				camera = new THREE.PerspectiveCamera(
-					50,
-					screenWidth / screenHeight,
-					0.01,
-					10000
-				);
-				camera.position.set(5, 5, 5);
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        0.01,
+        10000
+      );
+      camera.position.set(5, 5, 5);
 
-				// control
-				orbitControl = new OrbitControls(camera, renderer.domElement);
-				// orbitControl.enableDamping = true;
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
 
-				// helper
-				// const helper = new THREE.AxesHelper(10);
-				// scene.add(helper);
-			};
+      // helper
+      // const helper = new THREE.AxesHelper(10);
+      // scene.add(helper);
+    };
 
-			//
-			let lastCallTime = performance.now();
-			const render = () => {
-				orbitControl.update();
-				renderer.render(scene, camera);
-			};
+    //
+    let lastCallTime = performance.now();
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
 
-			const animate = () => {
-				requestAnimationFrame(animate);
+    const animate = () => {
+      requestAnimationFrame(animate);
 
-				const time = performance.now() / 1000;
-				// tweak uniforms
-				if (mesh) {
-					mesh.material.uniforms.uTime.value = time;
-				}
+      const time = performance.now() / 1000;
+      // tweak uniforms
+      if (mesh) {
+        mesh.material.uniforms.uTime.value = time;
+      }
 
-				render();
-				stats.update();
-			};
+      render();
+      stats.update();
+    };
 
-			//
-			const resize = () => {
-				screenWidth = window.innerWidth;
-				screenHeight = window.innerHeight;
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
 
-				renderer.setSize(screenWidth, screenHeight);
+      renderer.setSize(screenWidth, screenHeight);
 
-				camera.aspect = screenWidth / screenHeight;
-				camera.updateProjectionMatrix();
-			};
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
 
-			//
-			const addPlane = () => {
-				const texture = new THREE.TextureLoader().load(textureUrl);
-				const geo = new THREE.PlaneGeometry(3, 3, 64, 64);
-				const mat = new THREE.RawShaderMaterial({
-					vertexShader:
-						document.getElementById("vertexShader").textContent,
-					fragmentShader:
-						document.getElementById("fragmentShader").textContent,
-					side: THREE.DoubleSide,
-					uniforms: {
-						uTime: { value: 0 },
-						uColor: { value: new THREE.Vector3(0, 1, 1) },
-						uTexture: { value: texture },
-					},
-					transparent: true,
-					// wireframe: true,
-				});
+    //
+    const addPlane = () => {
+      const texture = new THREE.TextureLoader().load(textureUrl);
+      const geo = new THREE.PlaneGeometry(3, 3, 64, 64);
+      const mat = new THREE.RawShaderMaterial({
+        vertexShader:
+          document.getElementById("vertexShader").textContent,
+        fragmentShader:
+          document.getElementById("fragmentShader").textContent,
+        side: THREE.DoubleSide,
+        uniforms: {
+          uTime: { value: 0 },
+          uColor: { value: new THREE.Vector3(0, 1, 1) },
+          uTexture: { value: texture },
+        },
+        transparent: true,
+        // wireframe: true,
+      });
 
-				mesh = new THREE.Mesh(geo, mat);
-				mesh.rotateX(-Math.PI / 2);
+      mesh = new THREE.Mesh(geo, mat);
+      mesh.rotateX(-Math.PI / 2);
 
-				scene.add(mesh);
-			};
+      scene.add(mesh);
+    };
 
-			// invoke
-			initThree();
-			window.addEventListener("resize", resize);
-			animate();
+    // invoke
+    initThree();
+    window.addEventListener("resize", resize);
+    animate();
 
-			// stuff
-			addPlane();
-		</script>
-	</body>
+    // stuff
+    addPlane();
+  </script>
+</body>
+
 </html>

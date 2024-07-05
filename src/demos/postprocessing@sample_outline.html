@@ -179,9 +179,9 @@
         outlinePass.material.uniforms.uTime.value = time;
       }
 
-      if(params['auto rotating'] && group){
+      if (params['auto rotating'] && group) {
         group.rotation.x += 0.005;
-				group.rotation.y += 0.01;
+        group.rotation.y += 0.01;
       }
 
       render();

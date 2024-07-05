@@ -2,15 +2,15 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>noise</title>
-	<link type="text/css" rel="stylesheet" href="../main.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>noise</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
 </head>
 
 <body>
-	<!-- vertexShader -->
-	<script id="vertexShader" type="x-shader/x-vertex">
+  <!-- vertexShader -->
+  <script id="vertexShader" type="x-shader/x-vertex">
 
 		varying vec2 vUv;
 
@@ -19,8 +19,8 @@
 			vUv = uv;
 		}
 	</script>
-	<!-- fragmentShader -->
-	<script id="fragmentShader_GenericNoise" type="x-shader/x-fragment">
+  <!-- fragmentShader -->
+  <script id="fragmentShader_GenericNoise" type="x-shader/x-fragment">
 
 		uniform float uTime;
 		uniform float uScale;
@@ -41,7 +41,7 @@
 			gl_FragColor =  mix(t, b, noise);
 		}
 	</script>
-	<script id="fragmentShader_ClassicPerlinNoise" type="x-shader/x-fragment">
+  <script id="fragmentShader_ClassicPerlinNoise" type="x-shader/x-fragment">
 
 		uniform float uTime;
 		uniform float uScale;
@@ -98,7 +98,7 @@
 			gl_FragColor =  mix(t, b, noise);
 		}
 	</script>
-	<script id="fragmentShader_SimplexNoise" type="x-shader/x-fragment">
+  <script id="fragmentShader_SimplexNoise" type="x-shader/x-fragment">
 
 		uniform float uTime;
 		uniform float uScale;
@@ -146,161 +146,161 @@
 			gl_FragColor =  mix(t, b, noise);
 		}
 	</script>
-	<!-- scripts -->
-	<script type="module">
-		import * as THREE from "three";
-		import * as dat from "dat.gui";
-		import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-		import Stats from "three/examples/jsm/libs/stats.module";
-		import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
+    import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
 
-		let screenWidth = window.innerWidth;
-		let screenHeight = window.innerHeight;
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-		// three
-		let container, stats, scene, renderer, camera, orbitControl, mesh;
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, mesh;
 
-		//
-		const fragmentKeyMap = {
-			"generic noise": "fragmentShader_GenericNoise",
-			"classic perlin noise": "fragmentShader_ClassicPerlinNoise",
-			"simplex noise": "fragmentShader_SimplexNoise",
-		};
+    //
+    const fragmentKeyMap = {
+      "generic noise": "fragmentShader_GenericNoise",
+      "classic perlin noise": "fragmentShader_ClassicPerlinNoise",
+      "simplex noise": "fragmentShader_SimplexNoise",
+    };
 
-		// gui
-		const params = {
-			timeStep: 1,
-			scale: 30,
-			noise: Object.keys(fragmentKeyMap)[0],
-		};
+    // gui
+    const params = {
+      timeStep: 1,
+      scale: 30,
+      noise: Object.keys(fragmentKeyMap)[0],
+    };
 
-		const gui = new dat.GUI();
-		gui.add(params, "timeStep", 0, 5, 1);
-		gui.add(params, "scale", 1, 1000, 1).onChange(() => {
-			if (mesh) {
-				mesh.material.uniforms.uScale.value = params.scale;
-			}
-		});
-		gui.add(params, "noise", Object.keys(fragmentKeyMap)).onChange(
-			() => {
-				if (mesh) {
-					disposMesh();
-					addPlane();
-				}
-			}
-		);
+    const gui = new dat.GUI();
+    gui.add(params, "timeStep", 0, 5, 1);
+    gui.add(params, "scale", 1, 1000, 1).onChange(() => {
+      if (mesh) {
+        mesh.material.uniforms.uScale.value = params.scale;
+      }
+    });
+    gui.add(params, "noise", Object.keys(fragmentKeyMap)).onChange(
+      () => {
+        if (mesh) {
+          disposMesh();
+          addPlane();
+        }
+      }
+    );
 
-		//
-		const initThree = () => {
-			container = document.createElement("div");
-			document.body.appendChild(container);
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
 
-			// stats
-			stats = new Stats();
-			container.appendChild(stats.dom);
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
 
-			// scene
-			scene = new THREE.Scene();
+      // scene
+      scene = new THREE.Scene();
 
-			// renderer
-			renderer = new THREE.WebGLRenderer({
-				antialias: true,
-			});
-			renderer.setPixelRatio(window.devicePixelRatio);
-			renderer.setSize(screenWidth, screenHeight);
-			container.appendChild(renderer.domElement);
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
 
-			// cameras
-			camera = new THREE.PerspectiveCamera(
-				50,
-				screenWidth / screenHeight,
-				0.01,
-				10000
-			);
-			camera.position.set(0, 0, 5);
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        0.01,
+        10000
+      );
+      camera.position.set(0, 0, 5);
 
-			// control
-			orbitControl = new OrbitControls(camera, renderer.domElement);
-			// orbitControl.enableDamping = true;
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
 
-			// helper
-			// const helper = new THREE.AxesHelper(10);
-			// scene.add(helper);
-		};
+      // helper
+      // const helper = new THREE.AxesHelper(10);
+      // scene.add(helper);
+    };
 
-		//
-		const startTime = performance.now();
-		const render = () => {
-			orbitControl.update();
-			renderer.render(scene, camera);
-		};
+    //
+    const startTime = performance.now();
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
 
-		const animate = () => {
-			requestAnimationFrame(animate);
+    const animate = () => {
+      requestAnimationFrame(animate);
 
-			const time = ((performance.now() - startTime) / 1000) * params.timeStep;
-			// tweak uniforms
-			if (mesh) {
-				mesh.material.uniforms.uTime.value = time;
-			}
+      const time = ((performance.now() - startTime) / 1000) * params.timeStep;
+      // tweak uniforms
+      if (mesh) {
+        mesh.material.uniforms.uTime.value = time;
+      }
 
-			render();
-			stats.update();
-		};
+      render();
+      stats.update();
+    };
 
-		//
-		const resize = () => {
-			screenWidth = window.innerWidth;
-			screenHeight = window.innerHeight;
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
 
-			renderer.setSize(screenWidth, screenHeight);
+      renderer.setSize(screenWidth, screenHeight);
 
-			camera.aspect = screenWidth / screenHeight;
-			camera.updateProjectionMatrix();
-		};
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
 
-		//
-		const texture = new THREE.TextureLoader().load(textureUrl);
-		const geo = new THREE.PlaneGeometry(3, 3, 1, 1);
-		const addPlane = () => {
-			const mat = new THREE.ShaderMaterial({
-				vertexShader:
-					document.getElementById("vertexShader").textContent,
-				fragmentShader: document.getElementById(
-					fragmentKeyMap[params.noise]
-				).textContent,
-				side: THREE.DoubleSide,
-				uniforms: {
-					uTime: { value: 0 },
-					uScale: { value: params.scale },
-					uTexture: { value: texture },
-				},
-				transparent: true,
-				// wireframe: true,
-			});
+    //
+    const texture = new THREE.TextureLoader().load(textureUrl);
+    const geo = new THREE.PlaneGeometry(3, 3, 1, 1);
+    const addPlane = () => {
+      const mat = new THREE.ShaderMaterial({
+        vertexShader:
+          document.getElementById("vertexShader").textContent,
+        fragmentShader: document.getElementById(
+          fragmentKeyMap[params.noise]
+        ).textContent,
+        side: THREE.DoubleSide,
+        uniforms: {
+          uTime: { value: 0 },
+          uScale: { value: params.scale },
+          uTexture: { value: texture },
+        },
+        transparent: true,
+        // wireframe: true,
+      });
 
-			mesh = new THREE.Mesh(geo, mat);
+      mesh = new THREE.Mesh(geo, mat);
 
-			scene.add(mesh);
-		};
+      scene.add(mesh);
+    };
 
-		//
-		const disposMesh = () => {
-			if (scene && mesh) {
-				scene.remove(mesh);
-				mesh.material.dispose();
-				mesh = undefined;
-			}
-		};
+    //
+    const disposMesh = () => {
+      if (scene && mesh) {
+        scene.remove(mesh);
+        mesh.material.dispose();
+        mesh = undefined;
+      }
+    };
 
-		// invoke
-		initThree();
-		window.addEventListener("resize", resize);
-		animate();
+    // invoke
+    initThree();
+    window.addEventListener("resize", resize);
+    animate();
 
-		// stuff
-		addPlane();
-	</script>
+    // stuff
+    addPlane();
+  </script>
 </body>
 
 </html>
