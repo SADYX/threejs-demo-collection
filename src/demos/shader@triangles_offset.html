@@ -23,10 +23,14 @@
     }
 
     void main()	{
+      vec4 modelNormal = modelMatrix * vec4(normal, 0.0);
       vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
-      float noise = rand(vec2(faceIndex)) - 0.5;
-      vec3 offset = vec3(noise) * uWeight;
+      
+      // translate
+      float noise = rand(vec2(faceIndex));
+      vec3 offset = modelNormal.xyz * noise * uWeight;
       modelPosition.xyz += offset;
+
       vec4 viewPosition = viewMatrix * modelPosition;
       vec4 projectedPosition = projectionMatrix * viewPosition;
       gl_Position = projectedPosition;
@@ -162,6 +166,7 @@
         uTexture: { value: texture },
       },
       wireframe: false,
+      side: THREE.DoubleSide
     });
 
     // 
