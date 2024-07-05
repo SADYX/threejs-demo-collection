@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>triangles offset</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
+</head>
+
+<body>
+  <!-- vertexShader -->
+  <script id="vertexShader" type="x-shader/x-vertex">
+
+    attribute float faceIndex;
+
+		uniform float uWeight;
+
+    varying vec2 vUv;
+
+    float rand(vec2 co){
+      return fract(sin(dot(co.xy ,vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main()	{
+      vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
+      float noise = rand(vec2(faceIndex)) - 0.5;
+      vec3 offset = vec3(noise) * uWeight;
+      modelPosition.xyz += offset;
+      vec4 viewPosition = viewMatrix * modelPosition;
+      vec4 projectedPosition = projectionMatrix * viewPosition;
+      gl_Position = projectedPosition;
+      vUv = uv;
+    }
+  </script>
+  </script>
+  <!-- fragmentShader -->
+  <script id="fragmentShader" type="x-shader/x-fragment">
+
+		uniform sampler2D uTexture;
+
+		varying vec2 vUv;
+		
+
+		void main()	{
+
+			vec4 t = texture2D(uTexture, vUv);
+
+			gl_FragColor =  t;
+		}
+	</script>
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
+    import textureUrl from "@/assets/images/uv_grid_opengl.jpg";
+
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, mesh, directionalLight, ambientLight;
+
+    // gui
+    const params = {
+      weight: 3,
+    };
+
+    const gui = new dat.GUI();
+    gui.add(params, 'weight', 0, 6, 0.1).onChange(() => {
+      if (mesh) {
+        mesh.material.uniforms.uWeight.value = params.weight;
+      }
+    });
+
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
+
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
+
+      // scene
+      scene = new THREE.Scene();
+
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
+
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        0.01,
+        10000
+      );
+      camera.position.set(-5, 5, 5);
+
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
+
+      // light
+      directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight.position.set(-7, 8, 9);
+      scene.add(directionalLight);
+
+      ambientLight = new THREE.AmbientLight(0x404040);
+      scene.add(ambientLight);
+
+      // helper
+      const helper = new THREE.AxesHelper(3);
+      scene.add(helper);
+    };
+
+    //
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      render();
+      stats.update();
+    };
+
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+
+      renderer.setSize(screenWidth, screenHeight);
+
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
+
+    // material
+    const texture = new THREE.TextureLoader().load(textureUrl);
+
+    const shaderMaterial = new THREE.ShaderMaterial({
+      vertexShader:
+        document.getElementById("vertexShader").textContent,
+      fragmentShader: document.getElementById("fragmentShader").textContent,
+      uniforms: {
+        uWeight: { value: 3 },
+        uTexture: { value: texture },
+      },
+      wireframe: true,
+    });
+
+    // 
+    const addMesh = () => {
+      const geometry = new THREE.SphereGeometry(1, 16, 16).toNonIndexed();
+      // add faceIndex attribute
+      const facesCount = geometry.attributes.position.count * 3;
+      const facesIndex = new Uint8Array(facesCount);
+      for (let i = 0; i < facesCount; i++) {
+        facesIndex[i] = Math.floor(i / 9);
+      }
+      geometry.setAttribute('faceIndex', new THREE.BufferAttribute(facesIndex, 3));
+      mesh = new THREE.Mesh(geometry, shaderMaterial);
+      scene.add(mesh);
+    }
+
+    // invoke
+    initThree();
+    window.addEventListener("resize", resize);
+    animate();
+
+    // stuff
+    addMesh();
+  </script>
+</body>
+
+</html>
