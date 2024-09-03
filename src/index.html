@@ -2,85 +2,85 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>threejs-demo-collection</title>
-	<link type="text/css" rel="stylesheet" href="./index.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>threejs-demo-collection</title>
+  <link type="text/css" rel="stylesheet" href="./index.css" />
 </head>
 
 <body>
-	<script>
-		const fileNames = [
-			"generic@basic",
-			"generic@recognize_perspective_camera",
-			"generic@orthographic_camera_in_physical_world",
-			"shader@rawShaderMaterial",
-			"shader@noise",
-			"shader@web_audio_visualization",
-			"shader@city",
-			"shader@triangles_offset",
-			"postprocessing@night_vision",
-			"postprocessing@sample_outline",
-		];
+  <script>
+    const fileNames = [
+      "generic@basic",
+      "generic@recognize_perspective_camera",
+      "generic@orthographic_camera_in_physical_world",
+      "shader@rawShaderMaterial",
+      "shader@noise",
+      "shader@web_audio_visualization",
+      "shader@city",
+      "shader@triangles_offset",
+      "postprocessing@night_vision",
+      "postprocessing@sample_outline",
+    ];
 
-		const getTitleCase = (s) => {
-			return s.charAt(0).toUpperCase() + s.slice(1)
-		}
+    const getTitleCase = (s) => {
+      return s.charAt(0).toUpperCase() + s.slice(1)
+    }
 
-		const transformName = (name) => {
-			return name
-				.split("@")
-				.at(-1)
-				.split("_")
-				.map(getTitleCase)
-				.join(" ")
-		};
+    const transformName = (name) => {
+      return name
+        .split("@")
+        .at(-1)
+        .split("_")
+        .map(getTitleCase)
+        .join(" ")
+    };
 
-		const fileObject = {};
+    const fileObject = {};
 
-		// merge
-		fileNames.forEach((fileName) => {
-			const prefix = fileName.split('@')[0];
+    // merge
+    fileNames.forEach((fileName) => {
+      const prefix = fileName.split('@')[0];
 
-			if (fileObject[prefix]) {
-				fileObject[prefix].push(fileName);
-			}
-			else {
-				fileObject[prefix] = [fileName];
-			}
-		});
+      if (fileObject[prefix]) {
+        fileObject[prefix].push(fileName);
+      }
+      else {
+        fileObject[prefix] = [fileName];
+      }
+    });
 
-		const fileMap = Object.entries(fileObject);
-		fileMap.forEach(([prefix, names], index) => {
-			const title = document.createElement("h2");
-			title.textContent = getTitleCase(prefix);
-			document.body.appendChild(title);
+    const fileMap = Object.entries(fileObject);
+    fileMap.forEach(([prefix, names], index) => {
+      const title = document.createElement("h2");
+      title.textContent = getTitleCase(prefix);
+      document.body.appendChild(title);
 
-			names.forEach((fileName) => {
-				const name = transformName(fileName);
+      names.forEach((fileName) => {
+        const name = transformName(fileName);
 
-				const template = `
-					<div class="card">
-							<img src="screenshots/${fileName}.png" />
-							<h4>${name}</h4>
-					</div>
-				`;
+        const template = `
+          <div class="card">
+            <img src="screenshots/${fileName}.png" />
+            <h4>${name}</h4>
+          </div>
+        `;
 
-				const card = document.createElement("div");
-				card.innerHTML = template.trim();
-				card.firstChild.addEventListener("click", () => {
-					window.location.href = `%BASE_URL%demos/${fileName}.html`;
-				});
-				document.body.appendChild(card.firstChild);
-			});
+        const card = document.createElement("div");
+        card.innerHTML = template.trim();
+        card.firstChild.addEventListener("click", () => {
+          window.location.href = `%BASE_URL%demos/${fileName}.html`;
+        });
+        document.body.appendChild(card.firstChild);
+      });
 
-			if (index !== fileMap.length - 1) {
-				const split = document.createElement("hr");
-				document.body.appendChild(split);
-			}
-		});
+      if (index !== fileMap.length - 1) {
+        const split = document.createElement("hr");
+        document.body.appendChild(split);
+      }
+    });
 
-	</script>
+  </script>
 </body>
 
 </html>
