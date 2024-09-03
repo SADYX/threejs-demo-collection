@@ -26,7 +26,6 @@
     varying float vY;
   
     void main()	{
-
       float y = texture2D(uSong, vec2(placement / 127.0, 0.0)).r;
 
       vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
@@ -37,7 +36,7 @@
       gl_PointSize = 1.0;
       vY = y;
     }
- </script>
+  </script>
   <!-- fragmentShader -->
   <script id="fragmentShader" type="x-shader/x-fragment">
 

@@ -68,30 +68,28 @@
   <!-- vertexShader -->
   <script id="vertexShader_inspector" type="x-shader/x-vertex">
 
-        varying vec3 vPos;
+    varying vec3 vPos;
 
-        void main()	{
-            vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
-            vec4 viewPosition = viewMatrix * modelPosition;
-            vec4 projectedPosition = projectionMatrix * viewPosition;
-            gl_Position = projectedPosition;
-            vPos = position;
-        }
-    </script>
+    void main()	{
+      vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
+      vec4 viewPosition = viewMatrix * modelPosition;
+      vec4 projectedPosition = projectionMatrix * viewPosition;
+      gl_Position = projectedPosition;
+      vPos = position;
+    }
+  </script>
   <!-- fragmentShader -->
   <script id="fragmentShader_inspector" type="x-shader/x-fragment">
 
-        uniform float uHeight;
+    uniform float uHeight;
 
-        varying vec3 vPos;
+    varying vec3 vPos;
 
-        void main()	{
-
-            vec4 originColor = vec4(1.0, 1.0, 1.0, vPos.y / uHeight);
-
-            gl_FragColor = originColor;
-        }
-    </script>
+    void main()	{
+      vec4 originColor = vec4(1.0, 1.0, 1.0, vPos.y / uHeight);
+      gl_FragColor = originColor;
+    }
+  </script>
   <!-- scripts -->
   <script type="module">
     import * as THREE from "three";
