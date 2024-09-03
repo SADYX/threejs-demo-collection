@@ -14,7 +14,7 @@
 
     attribute float faceIndex;
 
-		uniform float uWeight;
+    uniform float uWeight;
 
     varying vec2 vUv;
 
@@ -40,15 +40,15 @@
   <!-- fragmentShader -->
   <script id="fragmentShader" type="x-shader/x-fragment">
 
-		uniform sampler2D uTexture;
+    uniform sampler2D uTexture;
 
-		varying vec2 vUv;
+    varying vec2 vUv;
 
-		void main()	{
-			vec4 t = texture2D(uTexture, vUv);
-			gl_FragColor =  t;
-		}
-	</script>
+    void main()	{
+      vec4 t = texture2D(uTexture, vUv);
+      gl_FragColor =  t;
+    }
+  </script>
   <!-- scripts -->
   <script type="module">
     import * as THREE from "three";

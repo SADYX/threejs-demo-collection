@@ -14,22 +14,22 @@
 
     varying vec2 vUv;
 
-		void main() {
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			vUv = uv;
-		}
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      vUv = uv;
+    }
   </script>
   <!-- fragmentShader -->
   <script id="fragmentShader" type="x-shader/x-fragment">
 
-		uniform sampler2D tDiffuse;
-		uniform float uTime;
-		uniform vec2 uResolution;
-		uniform float uSamples;
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform vec2 uResolution;
+    uniform float uSamples;
     
-		varying vec2 vUv;
+    varying vec2 vUv;
 
-		void main() {
+    void main() {
       vec2 fragCoord = vUv * uResolution;
 
       float totalWeight = 1.0;
