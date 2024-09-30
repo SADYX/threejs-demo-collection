@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>space search</title>
+  <link type="text/css" rel="stylesheet" href="../main.css" />
+</head>
+
+<body>
+  <!-- scripts -->
+  <script type="module">
+    import * as THREE from "three";
+    import * as dat from "dat.gui";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import Stats from "three/examples/jsm/libs/stats.module";
+    import { KdTree } from '@sadyx019/kd-tree';
+
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+
+    // three
+    let container, stats, scene, renderer, camera, orbitControl, directionalLight, ambientLight;
+    let planeMesh, modelMesh, tree;
+    let pointIndexCache = new Set();
+
+    const distanceFn = (a, b) => {
+      return Math.sqrt(
+        Math.pow((a[0] - b[0]), 2)
+        + Math.pow((a[1] - b[1]), 2)
+        + Math.pow((a[2] - b[2]), 2)
+      );
+    }
+
+    // gui
+    const params = {
+      'kd-tree': false,
+      range: 10,
+      wireframe: false,
+    };
+
+    const gui = new dat.GUI();
+    gui.add(params, 'kd-tree');
+    gui.add(params, 'range', 3, 30);
+    gui.add(params, 'wireframe').onChange(() => {
+      if (planeMesh) {
+        planeMesh.material.wireframe = params.wireframe;
+      }
+    });
+
+    //
+    const initThree = () => {
+      container = document.createElement("div");
+      document.body.appendChild(container);
+
+      // stats
+      stats = new Stats();
+      container.appendChild(stats.dom);
+
+      // scene
+      scene = new THREE.Scene();
+
+      // renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(screenWidth, screenHeight);
+      container.appendChild(renderer.domElement);
+
+      // cameras
+      camera = new THREE.PerspectiveCamera(
+        50,
+        screenWidth / screenHeight,
+        0.01,
+        10000
+      );
+      camera.position.set(100, 100, 100);
+
+      // control
+      orbitControl = new OrbitControls(camera, renderer.domElement);
+      // orbitControl.enableDamping = true;
+
+      // light
+      directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight.position.set(-7, 8, 9);
+      scene.add(directionalLight);
+
+      ambientLight = new THREE.AmbientLight(0x404040);
+      scene.add(ambientLight);
+
+      // helper
+      const helper = new THREE.AxesHelper(3);
+      scene.add(helper);
+    };
+
+    //
+    const startTime = performance.now();
+    const render = () => {
+      orbitControl.update();
+      renderer.render(scene, camera);
+    };
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      const time = (performance.now() - startTime) / 1000;
+
+      // set color
+      if (planeMesh && modelMesh && tree) {
+        const colors = planeMesh.geometry.attributes.color.array;
+        const newPosition = [
+          40 * Math.sin(time),
+          0.5,
+          40 * Math.cos(time),
+        ];
+
+        modelMesh.position.set(...newPosition);
+
+        // use kd tree
+        if (params['kd-tree']) {
+          const points = tree.getNearestByDistance(newPosition, params.range);
+
+          const newIndex = new Set();
+          points.forEach(({ data }) => {
+            const index = data[3];
+
+            newIndex.add(index);
+
+            // already include
+            if (pointIndexCache.has(index)) {
+              pointIndexCache.delete(index);
+              return;
+            }
+
+            // should be colored
+            colors[index] = 1;
+            colors[index + 1] = 0;
+            colors[index + 2] = 0;
+          });
+
+          // reset color
+          pointIndexCache.forEach((index) => {
+            colors[index] = 0.4;
+            colors[index + 1] = 0.7;
+            colors[index + 2] = 0.8;
+          });
+
+          pointIndexCache = newIndex;
+        }
+        // simple iterate
+        else {
+          const count = planeMesh.geometry.attributes.color.count;
+          const positions = planeMesh.geometry.attributes.position.array;
+
+          for (let i = 0; i < count; i++) {
+            const index = i * 3;
+
+            const distance = distanceFn(
+              newPosition,
+              [
+                positions[index],
+                positions[index + 1],
+                positions[index + 2],
+              ]
+            );
+
+            if (distance <= params.range) {
+              // should be colored
+              colors[index] = 1;
+              colors[index + 1] = 0;
+              colors[index + 2] = 0;
+            }
+            else {
+              // reset color
+              colors[index] = 0.4;
+              colors[index + 1] = 0.7;
+              colors[index + 2] = 0.8;
+            }
+          }
+        }
+
+        planeMesh.geometry.attributes.color.needsUpdate = true;
+      }
+
+      render();
+      stats.update();
+    };
+
+    //
+    const resize = () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+
+      renderer.setSize(screenWidth, screenHeight);
+
+      camera.aspect = screenWidth / screenHeight;
+      camera.updateProjectionMatrix();
+    };
+
+
+    // 
+    const addPlane = () => {
+      const geometry = new THREE.PlaneGeometry(100, 100, 2000, 2000);
+      geometry.rotateX(-Math.PI / 2);
+
+      const position = geometry.attributes.position;
+      const positionArray = position.array;
+      const count = position.count;
+
+      const colors = new Float32Array(count * 3);
+      const points = [];
+
+      for (let i = 0; i < count; i++) {
+        const index = i * 3;
+
+        // colors
+        colors[index] = 0.4;
+        colors[index + 1] = 0.7;
+        colors[index + 2] = 0.8;
+
+        // points
+        points.push([
+          positionArray[index],
+          positionArray[index + 1],
+          positionArray[index + 2],
+          index
+        ]);
+      }
+
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      // init kd tree
+      tree = new KdTree(
+        points,
+        distanceFn,
+        ['0', '1', '2'],
+      );
+
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        vertexColors: true,
+        wireframe: false,
+      });
+      planeMesh = new THREE.Mesh(geometry, material);
+      scene.add(planeMesh);
+    }
+
+    // 
+    const addModel = () => {
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshStandardMaterial({ color: 0x049ef4 });
+
+      modelMesh = new THREE.Mesh(geometry, material);
+      modelMesh.position.set(0, 0.5, 0);
+      scene.add(modelMesh);
+    }
+
+    // invoke
+    initThree();
+    window.addEventListener("resize", resize);
+    animate();
+
+    // stuff
+    addPlane();
+    addModel();
+  </script>
+</body>
+
+</html>

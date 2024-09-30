@@ -17,7 +17,9 @@
     "vite": "^5.0.10"
   },
   "dependencies": {
+    "@sadyx019/kd-tree": "^1.0.4",
     "cannon-es": "^0.20.0",
+    "gsap": "^3.12.5",
     "three": "^0.159.0"
   }
 }
