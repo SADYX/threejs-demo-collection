@@ -111,9 +111,9 @@
       if (planeMesh && modelMesh && tree) {
         const colors = planeMesh.geometry.attributes.color.array;
         const newPosition = [
-          40 * Math.sin(time),
+          40 * Math.sin(time / 3),
           0.5,
-          40 * Math.cos(time),
+          40 * Math.cos(time / 3),
         ];
 
         modelMesh.position.set(...newPosition);
