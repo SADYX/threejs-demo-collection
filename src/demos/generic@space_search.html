@@ -14,6 +14,7 @@
     import * as THREE from "three";
     import * as dat from "dat.gui";
     import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+    import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
     import Stats from "three/examples/jsm/libs/stats.module";
     import { KdTree } from '@sadyx019/kd-tree';
 
@@ -22,7 +23,7 @@
 
     // three
     let container, stats, scene, renderer, camera, orbitControl, directionalLight, ambientLight;
-    let planeMesh, modelMesh, tree;
+    let planeMesh, modelMesh, tree, mixer;
     let pointIndexCache = new Set();
 
     const distanceFn = (a, b) => {
@@ -36,13 +37,13 @@
     // gui
     const params = {
       'kd-tree': false,
-      range: 10,
+      range: 3,
       wireframe: false,
     };
 
     const gui = new dat.GUI();
     gui.add(params, 'kd-tree');
-    gui.add(params, 'range', 3, 30);
+    gui.add(params, 'range', 0, 5, 0.1);
     gui.add(params, 'wireframe').onChange(() => {
       if (planeMesh) {
         planeMesh.material.wireframe = params.wireframe;
@@ -76,7 +77,7 @@
         0.01,
         10000
       );
-      camera.position.set(100, 100, 100);
+      camera.position.set(30, 30, 30);
 
       // control
       orbitControl = new OrbitControls(camera, renderer.domElement);
@@ -87,7 +88,7 @@
       directionalLight.position.set(-7, 8, 9);
       scene.add(directionalLight);
 
-      ambientLight = new THREE.AmbientLight(0x404040);
+      ambientLight = new THREE.AmbientLight(0xffffff);
       scene.add(ambientLight);
 
       // helper
@@ -96,27 +97,39 @@
     };
 
     //
-    const startTime = performance.now();
     const render = () => {
       orbitControl.update();
       renderer.render(scene, camera);
     };
 
+    const startTime = performance.now();
+    let lastTime = startTime;
+    const speed = 4;
     const animate = () => {
       requestAnimationFrame(animate);
 
       const time = (performance.now() - startTime) / 1000;
+      const delta = time - lastTime;
+      lastTime = time;
 
       // set color
       if (planeMesh && modelMesh && tree) {
         const colors = planeMesh.geometry.attributes.color.array;
         const newPosition = [
-          40 * Math.sin(time / 3),
-          0.5,
-          40 * Math.cos(time / 3),
+          10 * Math.sin(time / speed),
+          0,
+          10 * Math.cos(time / speed),
         ];
 
         modelMesh.position.set(...newPosition);
+        modelMesh.setRotationFromMatrix(
+          new THREE.Matrix4(
+            Math.cos(Math.PI / 2 - time / speed), 0, -Math.sin(Math.PI / 2 - time / speed), 0,
+            0, 1, 0, 0,
+            Math.sin(Math.PI / 2 - time / speed), 0, Math.cos(Math.PI / 2 - time / speed), 0,
+            0, 0, 0, 1
+          )
+        );
 
         // use kd tree
         if (params['kd-tree']) {
@@ -184,6 +197,11 @@
         planeMesh.geometry.attributes.color.needsUpdate = true;
       }
 
+      // bot animation
+      if (mixer) {
+        mixer.update(delta);
+      }
+
       render();
       stats.update();
     };
@@ -202,7 +220,7 @@
 
     // 
     const addPlane = () => {
-      const geometry = new THREE.PlaneGeometry(100, 100, 2000, 2000);
+      const geometry = new THREE.PlaneGeometry(30, 30, 1000, 1000);
       geometry.rotateX(-Math.PI / 2);
 
       const position = geometry.attributes.position;
@@ -252,9 +270,30 @@
       const geometry = new THREE.BoxGeometry(1, 1, 1);
       const material = new THREE.MeshStandardMaterial({ color: 0x049ef4 });
 
-      modelMesh = new THREE.Mesh(geometry, material);
-      modelMesh.position.set(0, 0.5, 0);
-      scene.add(modelMesh);
+
+      const loader = new GLTFLoader();
+      loader.load(
+        '../assets/models/Soldier.glb',
+        (gltf) => {
+          console.log(gltf);
+          modelMesh = gltf.scene;
+          scene.add(modelMesh);
+
+          modelMesh.position.set(0, 0, 0);
+
+          const animations = gltf.animations;
+
+          mixer = new THREE.AnimationMixer(modelMesh);
+
+          const actions = [
+            mixer.clipAction(animations[1]), // run
+          ];
+
+          actions.forEach((action) => {
+            action.play();
+          });
+        }
+      )
     }
 
     // invoke
