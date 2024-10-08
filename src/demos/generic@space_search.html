@@ -17,6 +17,7 @@
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
     import Stats from "three/examples/jsm/libs/stats.module";
     import { KdTree } from '@sadyx019/kd-tree';
+    import modelUrl from "@/assets/models/Soldier.glb";
 
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
@@ -273,9 +274,8 @@
 
       const loader = new GLTFLoader();
       loader.load(
-        '../assets/models/Soldier.glb',
+        modelUrl,
         (gltf) => {
-          console.log(gltf);
           modelMesh = gltf.scene;
           scene.add(modelMesh);
 
