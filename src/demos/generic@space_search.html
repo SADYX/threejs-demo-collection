@@ -131,7 +131,8 @@
             0, 0, 0, 1
           )
         );
-
+        console.log(modelMesh);
+        
         // use kd tree
         if (params['kd-tree']) {
           const points = tree.getNearestByDistance(newPosition, params.range);
